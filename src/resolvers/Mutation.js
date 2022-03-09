@@ -2,7 +2,7 @@ import { v1 as uuidv1 } from "uuid";
 import Post from "./Post";
 
 const Mutation = {
-    createUser(parent, args, { db }, info) {
+    createUser(parent, args, { db, pubsub }, info) {
         const emailTaken = db.users.some((user) => user.email === args.data.email)
 
         if (emailTaken) {
@@ -113,7 +113,7 @@ const Mutation = {
         db.comments = db.comments.filter((comment) => comment.post !== args.id)
         return deletedPost[0]
     },
-    createComment(parent, args, { db }, info) {
+    createComment(parent, args, { db, pubsub }, info) {
         const userExists = db.users.some((user) => user.id === args.data.author)
         const postExists = db.posts.some((post) => post.id === args.data.post && post.published)
 
@@ -127,6 +127,12 @@ const Mutation = {
         }
 
         db.comments.push(comment)
+
+        // Two arguments passed for publish
+        // First is channel name defined in Subscription.js - we can access postId using args.data.post
+        // Second is the actual data that we trying to publish
+        pubsub.publish(`comment ${args.data.post}`, {comment: comment})
+
         return comment
     },
     updateComment(parent, args, { db }, info) {
@@ -143,15 +149,6 @@ const Mutation = {
             }
             db.comment.title = data.title
         }
-
-        if (typeof data.author.id === 'string') {
-            // db.comment.author = data.author.id
-            console.log('Author ID: ', data.author.id)
-        }
-
-        // if (typeof data.post === 'string') {
-        //     db.comment.post = data.post
-        // }
 
         return comment
     },
