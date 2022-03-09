@@ -75,7 +75,6 @@ const Mutation = {
         db.posts.push(post)
         return post
     },
-
     updatePost(parent, args, { db }, info) {
         const { id, data } = args
         const post = db.posts.find((post) => post.id === id)        
@@ -128,6 +127,32 @@ const Mutation = {
         }
 
         db.comments.push(comment)
+        return comment
+    },
+    updateComment(parent, args, { db }, info) {
+        const { id, data } = args
+        const comment = db.comments.find((comment) => comment.id === id)
+
+        if (!comment) {
+            throw new Error('Comment not found!')
+        }
+        
+        if (typeof data.title === 'string') {
+            if (data.title === db.comment.title) {
+                throw new Error('Comment already exists!')
+            }
+            db.comment.title = data.title
+        }
+
+        if (typeof data.author.id === 'string') {
+            // db.comment.author = data.author.id
+            console.log('Author ID: ', data.author.id)
+        }
+
+        // if (typeof data.post === 'string') {
+        //     db.comment.post = data.post
+        // }
+
         return comment
     },
     deleteComment(parent,args, { db },  info) {
